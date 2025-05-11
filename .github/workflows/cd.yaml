@@ -30,4 +30,4 @@ jobs:
           DBNAME: ${{ secrets.DBNAME }}
           USER: ${{ secrets.USER }}
           PASSWORD: ${{ secrets.PASSWORD }}
-        run: docker-compose up train_model --abort-on-container-exit
+        run: docker compose up train_model --abort-on-container-exit
