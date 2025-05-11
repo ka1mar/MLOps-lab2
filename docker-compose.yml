@@ -45,6 +45,30 @@ services:
        networks:
          - ml-network
 
+   greenplum-setup:
+    image: alpine
+    depends_on:
+      - greenplum
+    environment:
+      - USER=${USER}
+      - PASSWORD=${PASSWORD}
+      - DBNAME=${DBNAME}
+      - HOST=${HOST}
+    command: >
+      /bin/sh -c "
+        apk add --no-cache postgresql-client &&
+        sleep 120 &&
+        PGPASSWORD=pivotal psql -h ${HOST} -U tester -d testdb -c \"CREATE USER ${USER} WITH PASSWORD '${PASSWORD}' SUPERUSER;\" &&
+        PGPASSWORD=pivotal psql -h ${HOST} -U tester -d testdb -c \"CREATE DATABASE ${DBNAME} WITH OWNER ${USER};\" &&
+
+        PGPASSWORD=${PASSWORD} psql -h ${HOST} -U ${USER} -d ${DBNAME} -c \"DROP DATABASE testdb;\"
+        PGPASSWORD=${PASSWORD} psql -h ${HOST} -U ${USER} -d ${DBNAME} -c \"DROP DATABASE guest;\"
+        PGPASSWORD=${PASSWORD} psql -h ${HOST} -U ${USER} -d ${DBNAME} -c \"DROP USER tester;\"
+        PGPASSWORD=${PASSWORD} psql -h ${HOST} -U ${USER} -d ${DBNAME} -c \"DROP USER guest;\"
+      "
+    networks:
+      - ml-network
+
 networks:
     ml-network:
         driver: bridge
