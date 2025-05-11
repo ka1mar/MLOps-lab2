@@ -8,8 +8,8 @@ services:
          - USER=${USER}
          - PASSWORD=${PASSWORD}
        command: bash -c "
-        python src/db_operations.py &&
         python src/preprocess.py &&
+        python src/db_operations.py &&
         python src/train.py && 
         python src/predict.py -m ./catboost_model.cbm &&
         coverage run src/unit_tests/test_preprocess.py &&
@@ -21,7 +21,8 @@ services:
         "
        image: ka1mar/mlops-lab1:latest
        depends_on:
-         - greenplum
+         greenplum-setup:
+          condition: service_completed_successfully
        networks:
          - ml-network
 
@@ -33,6 +34,9 @@ services:
          - "5000:5000"
        restart: unless-stopped
        tty: true
+       depends_on:
+         greenplum-setup:
+          condition: service_completed_successfully
        networks:
          - ml-network
 
@@ -48,7 +52,8 @@ services:
    greenplum-setup:
     image: alpine
     depends_on:
-      - greenplum
+      greenplum:
+        condition: service_started
     environment:
       - USER=${USER}
       - PASSWORD=${PASSWORD}
